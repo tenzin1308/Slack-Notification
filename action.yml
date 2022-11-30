@@ -1,0 +1,25 @@
+name: 'Slack Notification'
+description: 'GitHub Action to send Customized Slack notification'
+branding:
+  icon: slack
+  color: white
+inputs:
+  slack-bot-token:
+    description: 'Slack Token'
+    required: true
+  slack-channel-id:
+    description: 'Slack Channel ID'
+    required: true
+  slack-message:
+    description: 'Message to post on the slack channel'
+    required: true
+outputs:
+  succeed:
+    description: 'Returns ok if the notification was successfully delivered'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.slack-bot-token }}
+    - ${{ inputs.slack-channel-id }}
+    - ${{ inputs.slack-message }}
