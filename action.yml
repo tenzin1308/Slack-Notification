@@ -4,22 +4,63 @@ branding:
   icon: slack
   color: white
 inputs:
-  slack-bot-token:
+  slack-bot_token:
     description: 'Slack Token'
     required: true
-  slack-channel-id:
+  slack-channel_id:
     description: 'Slack Channel ID'
     required: true
-  slack-message:
+  slack-text:
     description: 'Message to post on the slack channel'
     required: true
+  slack-attachments:
+    description: 'Pass True to send a JSON-based array of structured attachments.'
+    default: false
+  slack-blocks:
+    description: 'Pass True to send a JSON-based array of structured blocks.'
+    default: false
+  slack-icon_emoji:
+    description: 'Emoji to use as the icon for this message.'
+    default: ':github:'
+  slack-icon_url:
+    description: 'URL to an image to use as the icon for this message.'
+    default: ''
+  slack-thread_ts:
+    description: "Provide another message's ts value to make this message a reply."
+    default: ''
+  slack-unfurl_media:
+    description: 'Pass false to disable unfurling of media content.'
+    default: false
+  slack-unfurl_links:
+    description: 'Pass true to enable unfurling of primarily text-based content.'
+    default: false
+  slack-username:
+    description: "Set your bot's user name."
+    default: 'Mr. Awesome Bot'
+
 outputs:
   succeed:
     description: 'Returns ok if the notification was successfully delivered'
+    value: ${{ steps.notify.outputs.succeed }}
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - ${{ inputs.slack-bot-token }}
-    - ${{ inputs.slack-channel-id }}
-    - ${{ inputs.slack-message }}
+  using: "composite"
+  steps:
+    - name: Install Dependencies
+      run: pip3 install -r src/requirements.txt
+      shell: bash
+    - name: Send Slack Notification
+      id: notify
+      env:
+        bot_token: ${{ inputs.slack-bot_token }}
+        channel_id: ${{ inputs.slack-channel_id }}
+        text: ${{ inputs.slack-text }}
+        attachments: ${{ inputs.slack-attachments }}
+        blocks: ${{ inputs.slack-blocks }}
+        icon_emoji: ${{ inputs.slack-icon_emoji }}
+        icon_url: ${{ inputs.slack-icon_url }}
+        thread_ts: ${{ inputs.slack-thread_ts }}
+        unfurl_media: ${{ inputs.slack-unfurl_media }}
+        unfurl_links: ${{ inputs.slack-unfurl_links }}
+        username: ${{ inputs.slack-username }}
+      run: python3 src/runner.py "$bot_token" "$channel_id" "$text" "$attachments" "$blocks" "$icon_emoji" "$icon_url" "$thread_ts" "$unfurl_media" "$unfurl_links" "$username"
+      shell: bash
